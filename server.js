@@ -1,16 +1,24 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mysql = require('mysql');
+const connection  = require('express-myconnection'); 
 
 const app = express();
 
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '12345678',
-    database: 'node1'
+    password: '',
+    database: 'main'
   });
 
+//define other node
+const node1 = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'node1'
+  });
 
 db.connect(function(err) {
     if (err) {
@@ -20,14 +28,37 @@ db.connect(function(err) {
     console.log('connected as id' + db.threadId);
 });
 
+//connect other node
+node1.connect(function(err) {
+    if (err) {
+      console.error('error connecting: ' + err.stack);
+      return;
+    }
+    console.log('connected as id' + node1.threadId);
+});
+
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.get('/',(req, res) => {
+//viewing main
+app.get('/main',(req, res) => {
     // res.send('CRUD Operation using NodeJS / ExpressJS / MySQL');
     let sql = "SELECT * FROM movies LIMIT 1000";
     let query = db.query(sql, (err, rows) => {
+        if(err) throw err;
+        res.render('index', {
+            title : 'Movies Database',
+            movies : rows
+        });
+    });
+});
+
+//viewing node1
+app.get('/node1',(req, res) => {
+    // res.send('CRUD Operation using NodeJS / ExpressJS / MySQL');
+    let sql = "SELECT * FROM movies LIMIT 1000";
+    let query = node1.query(sql, (err, rows) => {
         if(err) throw err;
         res.render('index', {
             title : 'Movies Database',
@@ -74,6 +105,7 @@ app.post('/update',(req, res) => {
       res.redirect('/');
     });
 });
+
 
 app.get('/delete/:movieId',(req, res) => {
     const movieId = req.params.movieId;
