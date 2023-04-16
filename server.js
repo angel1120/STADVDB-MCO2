@@ -9,7 +9,21 @@ const db = mysql.createConnection({
     user: 'root',
     password: '12345678',
     database: 'node1'
-  });
+});
+
+const node2 = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '12345678',
+    database: 'node1'
+});
+
+const node3 = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '12345678',
+    database: 'node1'
+});
 
 
 db.connect(function(err) {
@@ -63,16 +77,51 @@ app.get('/edit/:movieId',(req, res) => {
             title : 'Edit Movie',
             movie : result[0]
         });
+
     });
+
 });
 
 app.post('/update',(req, res) => {
+
+    // Assign variables with data from edit page
     const movieId = req.body.id;
     let sql = "update movies SET name='"+req.body.name+"',  year='"+req.body.year+"',  `rank`='"+req.body.rank+"' where id ="+movieId;
-    let query = db.query(sql,(err, results) => {
-      if(err) throw err;
-      res.redirect('/');
+    
+    // Set the transaction isolation level to serializable
+    db.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+
+    // Start a transaction
+    db.beginTransaction((err) => {
+    if (err) { throw err; }
+
+    // Execute SQL statements within the transaction
+    db.query(sql, (err, result) => {
+        if (err) {
+        connection.rollback(() => {
+            throw err;
+        });
+        }
+        console.log('Affected rows:', result.affectedRows);
+
+        // Commit the transaction
+        db.commit((err) => {
+        if (err) {
+            connection.rollback(() => {
+            throw err;
+            });
+        }
+        res.redirect('/');
+        console.log('Transaction committed');
+        db.end();
+        });
     });
+    });
+
+    // let query = db.query(sql,(err, results) => {
+    //   if(err) throw err;
+    //   res.redirect('/');
+    // });
 });
 
 app.get('/delete/:movieId',(req, res) => {
