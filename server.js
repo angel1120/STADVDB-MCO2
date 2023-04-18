@@ -4,27 +4,29 @@ const mysql = require('mysql');
 
 const app = express();
 
+//central node
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'rCo100928',
+    host: '35.198.249.108',
+    user: 'imdb-root',
+    password: 'stadv',
     database: 'node1'
 });
 
+//movies-before-1980
 const node2 = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'rCo100928',
-    database: 'node1'
+    host: '35.247.175.191',
+    user: 'before-root',
+    password: 'stadv',
+    database: 'node2'
 });
 
+//movies-after-1980
 const node3 = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'rCo100928',
-    database: 'node1'
+    host: '34.126.115.63',
+    user: 'after-root',
+    password: 'stadv',
+    database: 'node3'
 });
-
 
 db.connect(function(err) {
     if (err) {
@@ -58,6 +60,7 @@ app.get('/add',(req, res) => {
  
 app.post('/save',(req, res) => { 
     let data = {name: req.body.name, year: req.body.year, rank: req.body.rank};
+    consol
     let sql = "INSERT INTO movies SET ?";
     let query = db.query(sql, data,(err, results) => {
       if(err) throw err;
@@ -117,11 +120,6 @@ app.post('/update',(req, res) => {
         });
     });
     });
-
-    // let query = db.query(sql,(err, results) => {
-    //   if(err) throw err;
-    //   res.redirect('/');
-    // });
 });
 
 app.get('/delete/:movieId',(req, res) => {
